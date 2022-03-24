@@ -17,9 +17,16 @@ By improving upon the previous model, Zillow can enhance it's reputation for rel
 
 ### Initial Questions
 
+- Is there a significant correlation between the number of bathrooms in a home and it's value?
+
+- Is there a significant correlation between the number of bedrooms in a home and it's value?
+
+- Is there a significant correlation between the square footage of a home and it's value?
+
 - Which has a greater effect on home values, number of bedrooms, number of bathrooms, or square footage? 
 
-- A "3/2" home is often considered ideal for many buyers. Could this be a useful categorical feature? 
+- A "3/2" home (one with three bedrooms and two bathrooms) is often considered ideal for many buyers. Could this be a useful categorical feature? 
+
 
 ### Data Dictionary
 
