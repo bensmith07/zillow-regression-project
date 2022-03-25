@@ -1,6 +1,7 @@
 import itertools
 import seaborn as sns
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 def plot_variable_pairs(train):
     quant_features = [col for col in train.columns if train[col].dtype != object]
@@ -53,3 +54,14 @@ def plot_categorical_and_continuous_vars(train, categ_vars, cont_vars):
                               y=cont_var,
                               data=train)
             plt.show()
+
+def correlation_test(data_for_category_1, data_for_category_2, alpha=.05):
+    print(f'H0: There is no linear correlation between {data_for_category_1.name} and {data_for_category_2.name}.')
+    print(f'H1: There is a linear correlation between {data_for_category_1.name} and {data_for_category_2.name}.')
+    r, p = stats.pearsonr(data_for_category_1, data_for_category_2)
+    print('\nr = ', round(r, 2))
+    print('p = ', round(p, 3))
+    if p < alpha:
+        print('\nReject H0')
+    else:
+        print('\nFail to Reject H0')
