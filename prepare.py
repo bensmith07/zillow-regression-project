@@ -116,3 +116,35 @@ def scale_zillow(train, validate, test, target, scaler_type=MinMaxScaler()):
     scaled_features = [col for col in train.columns if col.startswith('scaled_')]
 
     return train, validate, test
+
+def encode_zillow(train, validate, test, target):
+    '''
+    This function takes in the train, validate, and test samples, as well as a label for the target variable. 
+
+    It then encodes each of the categorical variables using one-hot encoding with dummy variables and appends 
+    the new encoded variables to the original dataframes as new columns with the prefix 'enc_{variable_name}'.
+
+    train, validate and test dataframes are returned (in that order)
+    '''
+    
+    features_to_encode = [col for col in train.columns if (train[col].dtype == 'object') & (col != target)]
+                        
+    for feature in features_to_encode:
+        dummy_df = pd.get_dummies(train[feature],
+                                  prefix=f'enc_{train[feature].name}',
+                                  drop_first=True)
+        train = pd.concat([train, dummy_df], axis=1)
+        
+    for feature in features_to_encode:
+        dummy_df = pd.get_dummies(validate[feature],
+                                  prefix=f'enc_{validate[feature].name}',
+                                  drop_first=True)
+        validate = pd.concat([validate, dummy_df], axis=1)
+        
+    for feature in features_to_encode:
+        dummy_df = pd.get_dummies(test[feature],
+                                  prefix=f'enc_{test[feature].name}',
+                                  drop_first=True)
+        test = pd.concat([test, dummy_df], axis=1)
+    
+    return train, validate, test

@@ -1,4 +1,5 @@
 import itertools
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy.stats as stats
@@ -65,3 +66,35 @@ def correlation_test(data_for_category_1, data_for_category_2, alpha=.05):
         print('\nReject H0')
     else:
         print('\nFail to Reject H0')
+
+def value_by_bathrooms(train):
+    plt.figure(figsize=(10,8))
+    sns.boxplot(data=train,
+                  x='bathrooms',
+                  y='tax_value')
+    plt.title('Value by Number of Bathrooms')
+    plt.show()
+
+def sqft_vs_value(train):
+    sns.lmplot(x='sqft', 
+               y='tax_value', 
+               data=train.sample(1000, random_state=42), 
+               line_kws={'color': 'red'})
+    plt.title('Value by Square Footage')
+    plt.show()
+
+def value_by_bedrooms(train):
+    plt.figure(figsize=(10,8))
+    sns.boxplot(data=train,
+                  x='bedrooms',
+                  y='tax_value')
+    plt.title('Value by Number of Bedrooms')
+    plt.show() 
+
+def value_correlations(train):
+    corr = pd.DataFrame(train.corr().abs().tax_value).sort_values(by='tax_value', ascending=False)
+    corr.columns = ['correlation (abs)']
+    plt.figure(figsize=(10,8))
+    sns.heatmap(corr, annot=True)
+    plt.title('Features\' Correlation with Value')
+    plt.show()
