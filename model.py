@@ -2,9 +2,13 @@ import pandas as pd
 import sklearn as sk
 from math import sqrt
 from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import mean_squared_error
 
-def determine_regression_baseline(train, target, return_results_df=False):
-    
+def determine_regression_baseline(train, target):
+    '''
+    This function takes in a train sample and a continuous target variable label and 
+    determines whether the mean or median performs better as a baseline prediction. 
+    '''
     # create empty dataframe for storing prediction results
     results = pd.DataFrame(index=train.index)
     # assign actual values for the target variable
@@ -27,12 +31,8 @@ def determine_regression_baseline(train, target, return_results_df=False):
         results = results.drop(columns='baseline_median')
         results['RMSE_baseline'] = RMSE_baseline_mean
         baseline = 'mean'
-
+    # print the results
     print(f'The highest performing baseline is the {baseline} target value.')
-    
-    # return
-    if return_results_df:
-        return results
 
 def run_baseline(train,
                  validate,
@@ -40,6 +40,10 @@ def run_baseline(train,
                  model_number,
                  model_info,
                  model_results):
+    '''
+    This function performs the operations required for storing information about baseline performance for
+    a regression model.
+    '''
 
     y_train = train[target]
     y_validate = validate[target]
@@ -61,29 +65,36 @@ def run_baseline(train,
     # establish baseline predictions for train sample
     y_pred = baseline_pred = pd.Series(train[target].mean()).repeat(len(train))
 
-    # get metrics
+    # create a dictionary containing information about the baseline's performance on train
     dct = {'model_number': model_number, 
            'sample_type': 'train', 
            'metric_type': 'RMSE',
            'score': sqrt(sk.metrics.mean_squared_error(y_train, y_pred))}
+    # append that dictionary to the model_results dataframe
     model_results = model_results.append(dct, ignore_index=True)
 
 
     # establish baseline predictions for validate sample
     y_pred = baseline_pred = pd.Series(validate[target].mean()).repeat(len(validate))
 
-    # get metrics
+    # create a dictionary containing information about the baseline's performance on validate
     dct = {'model_number': model_number, 
            'sample_type': 'validate', 
            'metric_type': 'RMSE',
            'score': sqrt(sk.metrics.mean_squared_error(y_validate, y_pred))}
+    # append that dictionary to the model results dataframe
     model_results = model_results.append(dct, ignore_index=True)
     
+    # reset the model_number to 0 to be changed in each subsequent modeling iteration
     model_number = 0
     
     return model_number, model_info, model_results
 
 def run_OLS(train, validate, target, model_number, model_info, model_results):
+    '''
+    This function creates various OLS regression models and stores infomation about their performance
+    for later evaluation.
+    '''
 
     features1 = ['scaled_bedrooms', 'scaled_bathrooms', 'scaled_sqft']
     features2 = ['scaled_bedrooms', 'scaled_bathrooms', 'scaled_sqft', 'scaled_age']
@@ -146,17 +157,36 @@ def run_OLS(train, validate, target, model_number, model_info, model_results):
         
     return model_number, model_info, model_results
 
-def final_test_model1(train, test):
-
-    x_train = train[['scaled_bedrooms', 'scaled_bathrooms', 'scaled_sqft']]
+def final_test_model3(train, test, target):
+    '''
+    This function recreates the regression model previously found to perform with the smallest error, then 
+    evaluates that model on the test sample and prints the resulting RMSE.
+    '''
+    # establish x-train with the appropriate set of features
+    x_train = train[['scaled_bedrooms',
+                     'scaled_bathrooms',
+                     'scaled_sqft',
+                     'scaled_age',
+                     'enc_fips_06059',
+                     'enc_fips_06111']]
+    # establish y train as the target values
     y_train = train[target]
     
-    x_test = test[['scaled_bedrooms', 'scaled_bathrooms', 'scaled_sqft']]
+    # establish x-test with the appropriate set of features
+    x_test = test[['scaled_bedrooms',
+                     'scaled_bathrooms',
+                     'scaled_sqft',
+                     'scaled_age',
+                     'enc_fips_06059',
+                     'enc_fips_06111']]
+    # establish y_test as the target values
     y_test = test[target]
     
+    # create and fit the model on the training data
     linreg = LinearRegression(normalize=True).fit(x_train, y_train)
+    # create predictions on the test sample
     y_pred = linreg.predict(x_test)
-    
+    # compute the rmse performance metric
     RMSE = sqrt(mean_squared_error(y_test, y_pred))
-    
-    print('Model 1 RMSE: ', '${:,.2f}'.format(RMSE))
+    #display the results
+    print('Model 3 RMSE: ', '${:,.2f}'.format(RMSE))

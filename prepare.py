@@ -53,13 +53,41 @@ def train_test_validate_split(df, test_size=.2, validate_size=.3, random_state=4
     
     The function also prints the size of each sample.
     '''
+    # split the dataframe into train and test
     train, test = train_test_split(df, test_size=.2, random_state=42)
+    # further split the train dataframe into train and validate
     train, validate = train_test_split(train, test_size=.3, random_state=42)
+    # print the sample size of each resulting dataframe
     print(f'train\t n = {train.shape[0]}')
     print(f'test\t n = {test.shape[0]}')
     print(f'validate n = {validate.shape[0]}')
 
     return train, test, validate
+
+# def remove_outliers(train, validate, test, k, col_list):
+#     ''' 
+#     This function takes in a dataset split into three sample dataframes: train, validate and test.
+#     It calculates an outlier range based on a given value for k, using the interquartile range 
+#     from the train sample. It then applies that outlier range to each of the three samples, removing
+#     outliers from a given list of feature columns. The train, validate, and test dataframes 
+#     are returned, in that order. 
+#     '''
+#     # iterate through each column in the given list
+#     for col in col_list:
+#         q1, q3 = train[col].quantile([.25, .75])  # establish the 1st and 3rd quartiles
+#         iqr = q3 - q1   # calculate interquartile range
+#         upper_bound = q3 + k * iqr   # get upper bound
+#         lower_bound = q1 - k * iqr   # get lower bound
+#         # remove outliers from each of the three samples
+#         train = train[(train[col] > lower_bound) & (train[col] < upper_bound)]
+#         validate = validate[(validate[col] > lower_bound) & (validate[col] < upper_bound)]
+#         test = test[(test[col] > lower_bound) & (test[col] < upper_bound)]
+#     # print the sample size of each resulting dataframe
+#     print(f'train\t n = {train.shape[0]}')
+#     print(f'test\t n = {test.shape[0]}')
+#     print(f'validate n = {validate.shape[0]}')
+#     #return sample dataframes without outliers
+#     return train, validate, test
 
 def remove_outliers(train, validate, test, k, col_list):
     ''' 
@@ -69,16 +97,39 @@ def remove_outliers(train, validate, test, k, col_list):
     outliers from a given list of feature columns. The train, validate, and test dataframes 
     are returned, in that order. 
     '''
+    # Create a column that will label our rows as containing an outlier value or not
+    train['outlier'] = False
+    validate['outlier'] = False
+    test['outlier'] = False
     for col in col_list:
+
         q1, q3 = train[col].quantile([.25, .75])  # get quartiles
+        
         iqr = q3 - q1   # calculate interquartile range
+        
         upper_bound = q3 + k * iqr   # get upper bound
         lower_bound = q1 - k * iqr   # get lower bound
-        # remove outliers from each of the three samples
-        train = train[(train[col] > lower_bound) & (train[col] < upper_bound)]
-        validate = validate[(validate[col] > lower_bound) & (validate[col] < upper_bound)]
-        test = test[(test[col] > lower_bound) & (test[col] < upper_bound)]
-    #return sample dataframes without outliers
+
+        # update the outlier label any time that the value is outside of boundaries
+        train['outlier'] = np.where(((train[col] < lower_bound) | (train[col] > upper_bound)) & (train.outlier == False), True, train.outlier)
+        validate['outlier'] = np.where(((validate[col] < lower_bound) | (validate[col] > upper_bound)) & (validate.outlier == False), True, validate.outlier)
+        test['outlier'] = np.where(((test[col] < lower_bound) | (test[col] > upper_bound)) & (test.outlier == False), True, test.outlier)
+
+    # remove observations with the outlier label in each of the three samples
+    train = train[train.outlier == False]
+    train = train.drop(columns=['outlier'])
+
+    validate = validate[validate.outlier == False]
+    validate = validate.drop(columns=['outlier'])
+
+    test = test[test.outlier == False]
+    test = test.drop(columns=['outlier'])
+
+    # print the remaining 
+    print(f'train\t n = {train.shape[0]}')
+    print(f'test\t n = {test.shape[0]}')
+    print(f'validate n = {validate.shape[0]}')
+
     return train, validate, test
 
 def scale_zillow(train, validate, test, target, scaler_type=MinMaxScaler()):
@@ -126,15 +177,19 @@ def encode_zillow(train, validate, test, target):
 
     train, validate and test dataframes are returned (in that order)
     '''
-    
+    # identify the features to encode (categorical features represented by non-numeric data types)
     features_to_encode = [col for col in train.columns if (train[col].dtype == 'object') & (col != target)]
-                        
+    #iterate through the list of features                  
     for feature in features_to_encode:
+        # establish dummy variables
         dummy_df = pd.get_dummies(train[feature],
                                   prefix=f'enc_{train[feature].name}',
                                   drop_first=True)
+        # add the dummies as new columns to the original dataframe
         train = pd.concat([train, dummy_df], axis=1)
-        
+
+    # then repeat the process for the other two samples:
+
     for feature in features_to_encode:
         dummy_df = pd.get_dummies(validate[feature],
                                   prefix=f'enc_{validate[feature].name}',
