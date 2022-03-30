@@ -7,6 +7,8 @@ def prep_zillow_1(df):
     '''
     This function takes in a dataframe of zillow data obtained using the acquire.zillow_2017_data function. 
 
+    It replaces null values for garage area with 0's
+
     It checks for null values and removes all observations containing null values if the number of null values is 
     less than 5% the total number of observations. 
 
@@ -19,6 +21,18 @@ def prep_zillow_1(df):
 
     The cleaned dataframe is returned. 
     '''
+    # replace null values for garagetotalsqft and poolcnt with 0
+    df['garagetotalsqft'] = np.where(df.garagetotalsqft.isna(), 0, df.garagetotalsqft)
+    df['poolcnt'] = np.where(df.poolcnt.isna(), 0, df.poolcnt)
+    # renaming columns for readability
+    df = df.rename(columns = {'bedroomcnt': 'bedrooms',
+                              'bathroomcnt': 'bathrooms', 
+                              'calculatedfinishedsquarefeet': 'sqft', 
+                              'taxvaluedollarcnt': 'tax_value',
+                              'yearbuilt': 'year_built',
+                              'garagetotalsqft': 'garage_sqft',
+                              'poolcnt': 'pools',
+                              'lotsizesquarefeet': 'lot_sqft'})
     # check for null values
     total_nulls = df.isnull().sum().sum()
     # if the total number of nulls is less than 5% of the number of observations in the df
@@ -27,12 +41,8 @@ def prep_zillow_1(df):
         df = df.dropna()
     else:
         print('Number of null values > 5% length of df. Evaluate further before dropping nulls.')
-    # renaming columns for readability
-    df = df.rename(columns = {'bedroomcnt': 'bedrooms',
-                              'bathroomcnt': 'bathrooms', 
-                              'calculatedfinishedsquarefeet': 'sqft', 
-                              'taxvaluedollarcnt': 'tax_value',
-                              'yearbuilt': 'year_built'})
+        return None 
+
     # changing data types:
     # changing year from float to int
     df['year_built'] = df.year_built.apply(lambda year: int(year))
@@ -163,8 +173,6 @@ def scale_zillow(train, validate, test, target, scaler_type=MinMaxScaler()):
     train = pd.concat([train, train_scaled], axis=1)
     validate = pd.concat([validate, validate_scaled], axis=1)
     test = pd.concat([test, test_scaled], axis=1)
-    #identify scaled features
-    scaled_features = [col for col in train.columns if col.startswith('scaled_')]
 
     return train, validate, test
 
