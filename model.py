@@ -387,7 +387,7 @@ def display_model_results(model_results):
 def get_best_model_results(model_results, n_models=3):
     '''
     This function takes in the model_results dataframe created in the Modeling stage of the 
-    TelCo Churn analysis project. This is a dataframe in tidy data format containing the following
+    project. This is a dataframe in tidy data format containing the following
     data for each model created in the project:
     - model number
     - metric type (accuracy, precision, recall, f1 score)
