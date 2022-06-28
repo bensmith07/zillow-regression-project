@@ -59,7 +59,7 @@ By creating a reliable model for predicting property values, Zillow can enhance 
 - I conducted an initial exploration of the data by examing relationships between each of the potential features and the target
 - then explored further, to answer the initial questions posed above
 4. Modeling 
-- Using varying combinations of features, I tested multiple Ordinary Least Squares (OLS) Regression models. 
+- Using varying combinations of features, I tested multiple Ordinary Least Squares (OLS) Regression, Polynomial Regression, and Lasso + Lars models. 
 - I then chose the model which performed with the smallest error on unseen data.
 
 ### How did we do?
